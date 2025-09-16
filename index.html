@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="Surprise romantic blooming flower for Noor Aliya Rahma Tuffahty — single-file animation ready for GitHub Pages."/>
+  <title>For Noor Aliya Rahma Tuffahty</title>
+
+  <!-- Google Font (allowed) -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ============================
+       Root variables — edit text here or via data-* attributes on <body>
+       You can change these values for quick customization.
+       ============================ */
+    :root{
+      --bg: #000000;
+      --title-color-start: #fff7d9;
+      --title-color-end: #ffd27a;
+      --subtitle-color: #ffffffcc;
+      --petal-grad-1: #ff9fc9; /* pink */
+      --petal-grad-2: #b36bff; /* purple */
+      --petal-grad-3: rgba(255,255,255,0.06);
+      --petal-count: 8; /* visual count */
+      --title-text: "For Noor Aliya Rahma Tuffahty"; /* fallback editable via CSS */
+      --subtitle-text: "Dengan cinta, Dafa";           /* fallback editable via CSS */
+      --petal-size: 110px; /* base size for petals */
+      --animation-duration: 6.5s;
+      --petal-scale: 1;
+      --ui-button-opacity: 0.5;
+    }
+
+    /* ============================
+       Basic reset & layout
+       ============================ */
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:#fff;
+      font-family: "Playfair Display", serif;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:100vh;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      /* data attributes on body can override title/subtext — handled by script below */
+    }
+
+    /* Container for the whole piece */
+    .stage{
+      position:relative;
+      width:min(920px, 95vw);
+      height:min(720px, 80vh);
+      display:grid;
+      place-items:center;
+      user-select:none;
+      overflow:hidden;
+    }
+
+    /* Center card with subtle glass effect so text stands out on mobile */
+    .center {
+      position:relative;
+      width:100%;
+      height:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      gap:24px;
+    }
+
+    /* Flower wrapper */
+    .flower {
+      position:relative;
+      width: calc(var(--petal-size) * 1.6);
+      height: calc(var(--petal-size) * 1.6);
+      display:grid;
+      place-items:center;
+      pointer-events:none; /* clicks pass through to stage for surprise */
+    }
+
+    /* Petal base style */
+    .petal {
+      position:absolute;
+      bottom:50%;
+      left:50%;
+      width: calc(var(--petal-size));
+      height: calc(var(--petal-size) * 1.4);
+      transform-origin: 50% 95%;
+      border-radius: 50% 50% 40% 40% / 60% 60% 40% 40%;
+      background: linear-gradient(180deg, var(--petal-grad-1), var(--petal-grad-2));
+      box-shadow: 0 6px 24px rgba(0,0,0,0.45), inset 0 -6px 18px rgba(255,255,255,0.03);
+      opacity: 0;
+      will-change: transform, opacity;
+      /* subtle sheen */
+      background-blend-mode: soft-light;
+      display:block;
+    }
+
+    /* Core circle / stigma */
+    .core {
+      position:absolute;
+      width:26%;
+      height:26%;
+      border-radius:50%;
+      background: radial-gradient(circle at 35% 30%, #fff7d9, #ffd27a 30%, #ffb84d 60%, #ff8a6b 100%);
+      box-shadow: 0 0 28px rgba(255,180,95,0.15), 0 6px 20px rgba(0,0,0,0.5);
+      z-index:5;
+      pointer-events:none;
+    }
+
+    /* Title & subtitle */
+    .title {
+      font-size: clamp(1.45rem, 3vw, 2.6rem);
+      line-height:1;
+      text-align:center;
+      letter-spacing:0.6px;
+      background: linear-gradient(90deg, var(--title-color-start), var(--title-color-end));
+      -webkit-background-clip: text;
+      background-clip:text;
+      color:transparent;
+      text-shadow: 0 6px 30px rgba(255,200,140,0.06);
+      z-index:6;
+      transition: text-shadow .4s ease;
+      padding:0 12px;
+      word-break:break-word;
+    }
+    .subtitle {
+      font-size: clamp(.95rem, 2.6vw, 1.1rem);
+      color:var(--subtitle-color);
+      opacity:0;
+      transform: translateY(6px);
+      transition:opacity .9s ease .8s, transform .9s ease .8s;
+      text-align:center;
+      z-index:6;
+      padding:0 10px;
+    }
+
+    /* Subtitle fade-in class (applied after load) */
+    .show-sub .subtitle{
+      opacity:1;
+      transform: translateY(0);
+    }
+
+    /* ========== Petal animation ========== 
+       Each petal will use a rotation variable to distribute around circle.
+       The animation 'bloom' scales & fades petals in with a gentle rotate.
+    */
+    @keyframes bloom {
+      0% {
+        transform: translate(-50%, 40%) scale(0.12) rotate(var(--initial-rot));
+        opacity:0;
+      }
+      40% {
+        transform: translate(-50%, 0%) scale(0.98) rotate(calc(var(--initial-rot) + 6deg));
+        opacity:0.85;
+      }
+      70% {
+        transform: translate(-50%, -6%) scale(1.03) rotate(calc(var(--initial-rot) - 6deg));
+        opacity:1;
+      }
+      100% {
+        transform: translate(-50%, -8%) scale(var(--petal-scale)) rotate(calc(var(--initial-rot) - 2deg));
+        opacity:1;
+      }
+    }
+
+    /* Apply animation to petals with stagger using CSS variables */
+    .petal {
+      animation-name: bloom;
+      animation-duration: var(--animation-duration);
+      animation-timing-function: cubic-bezier(.2,.9,.27,1);
+      animation-iteration-count: infinite;
+      animation-direction: normal;
+      animation-fill-mode: both;
+    }
+
+    /* Slight slow rotation to the whole flower for a dreamy feel */
+    @keyframes flower-drift {
+      0% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-6px) rotate(0.8deg); }
+      100% { transform: translateY(0) rotate(0deg); }
+    }
+    .flower { animation: flower-drift 14s ease-in-out infinite; will-change: transform; }
+
+    /* Pause state — toggled by JS */
+    .paused .petal,
+    .paused .flower { animation-play-state: paused !important; }
+
+    /* small UI buttons */
+    .controls {
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+      display:flex;
+      gap:8px;
+      z-index: 40;
+    }
+    .btn {
+      --size:42px;
+      width:var(--size);
+      height:var(--size);
+      border-radius:10px;
+      background: rgba(255,255,255,var(--ui-button-opacity));
+      border: none;
+      display:grid;
+      place-items:center;
+      font-size:14px;
+      cursor:pointer;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+      transition: transform .18s ease, opacity .2s ease;
+      opacity:0.9;
+    }
+    .btn:active{ transform: scale(.96) }
+    .btn[aria-pressed="true"]{ transform: scale(0.98); opacity:1 }
+
+    /* Icon simple shapes */
+    .icon {
+      display:inline-block;
+      width:18px;
+      height:18px;
+      position:relative;
+    }
+    .icon.pause::before, .icon.pause::after{
+      content:""; position:absolute; top:0; width:6px; height:100%; background:#222; border-radius:2px;
+    }
+    .icon.pause::before{ left:0 } .icon.pause::after{ right:0 }
+    .icon.play {
+      width:0;height:0;border-left: 18px solid #222;border-top: 10px solid transparent;border-bottom:10px solid transparent;
+    }
+    .icon.music::before{
+      content:""; position:absolute; right:0; width:10px; height:14px; border-radius:2px; background:#222;
+      box-shadow: -8px -6px 0 0 #222;
+      transform-origin:center;
+    }
+
+    /* surprise quote (appears on first click) */
+    .surprise {
+      position:absolute;
+      z-index:50;
+      top:18%;
+      left:50%;
+      transform:translateX(-50%) translateY(-6px) scale(.98);
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      padding:12px 18px;
+      border-radius:14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      opacity:0;
+      pointer-events:none;
+      transition: opacity .46s ease, transform .46s ease;
+      color: #fff;
+      font-size:clamp(.9rem, 2.4vw, 1.05rem);
+    }
+    .surprise.show { opacity:1; transform:translateX(-50%) translateY(0) scale(1); }
+
+    /* Canvas for confetti (full-screen overlay but pointer-events none so controls still clickable) */
+    #confetti {
+      position:fixed; inset:0; pointer-events:none; z-index:60;
+    }
+
+    /* Accessibility & prefers reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      .petal, .flower, .title, .subtitle { animation: none !important; transition:none !important; }
+      .petal { opacity:1; transform: translate(-50%,-8%) scale(1) rotate(var(--initial-rot)); }
+    }
+
+    /* responsive tweaks */
+    @media (max-width:520px){
+      .controls{ right:8px; bottom:8px}
+      .btn{ --size:36px; border-radius:8px }
+      .center{ gap:12px }
+    }
+  </style>
+</head>
+<body
+  data-title="For Noor Aliya Rahma Tuffahty"
+  data-subtext="dari cinta Dafa Pradipta… aku buat ini karena kamu perempuan yang pantas diperlakukan dengan segala cara dan kebaikan.
+setiap senyum kamu selalu ngingetin aku, kalo kamu itu indah dan layak diperlakukan dengan baik.
+semoga hal kecil ini bisa jadi cara sederhana buat nunjukin betapa berharganya kamu di mataku sayangg. 🌷"
+  aria-label="Surprise blooming flower for Noor Aliya Rahma Tuffahty - click to reveal surprise"
+>
+  <div class="stage" id="stage" role="main" aria-live="polite">
+    <div class="center" id="center">
+      <!-- Flower SVG-like using div petals for lightweight animation -->
+      <div class="flower" id="flower" aria-hidden="true">
+        <!-- We'll generate petals by JS; include core -->
+        <div class="core" aria-hidden="true"></div>
+      </div>
+
+      <!-- Title and subtitle; text set by CSS variables / JS from data-* -->
+      <h1 class="title" id="title" role="heading" aria-level="1" data-text-var>For Noor Aliya Rahma Tuffahty</h1>
+      <div class="subtitle" id="subtitle" data-text-var>Dengan cinta, Dafa</div>
+
+      <!-- Surprise quote element (hidden until click) -->
+      <div class="surprise" id="surprise" role="status" aria-hidden="true">You're my everything 💖</div>
+    </div>
+
+    <!-- Controls (pause/play animation, music) -->
+    <div class="controls" aria-hidden="false">
+      <button class="btn" id="animToggle" aria-pressed="false" title="Toggle animation" aria-label="Toggle animation">
+        <span class="icon play" id="animIcon" aria-hidden="true"></span>
+      </button>
+      <button class="btn" id="musicToggle" aria-pressed="false" title="Toggle music" aria-label="Toggle music">
+        <span class="icon music" aria-hidden="true"></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Confetti canvas -->
+  <canvas id="confetti" aria-hidden="true"></canvas>
+
+  <!-- Local audio placeholder:
+       Put an mp3 file named "romantic.mp3" or "audio.mp3" beside index.html in same folder
+       (GitHub Pages will serve it if uploaded).
+       We do NOT load any external audio file. -->
+  <audio id="music" src="romantic.mp3" preload="none" aria-hidden="true"></audio>
+
+  <!-- ============================
+       Inline script: generate petals, interaction, controls, confetti
+       ============================ -->
+  <script>
+    /* ============================
+       Configuration & helpers
+       - Honors data attributes on <body> (data-title, data-subtext)
+       - Also uses CSS variables as fallback
+       ============================ */
+
+    (function(){
+      const body = document.body;
+      const stage = document.getElementById('stage');
+      const flower = document.getElementById('flower');
+      const titleEl = document.getElementById('title');
+      const subtitleEl = document.getElementById('subtitle');
+      const surpriseEl = document.getElementById('surprise');
+      const confettiCanvas = document.getElementById('confetti');
+      const audio = document.getElementById('music');
+      const animToggle = document.getElementById('animToggle');
+      const musicToggle = document.getElementById('musicToggle');
+      const animIcon = document.getElementById('animIcon');
+
+      // Read CSS variables for defaults
+      const styles = getComputedStyle(document.documentElement);
+      const defaultTitle = styles.getPropertyValue('--title-text').trim().replace(/^["']|["']$/g,'');
+      const defaultSubtitle = styles.getPropertyValue('--subtitle-text').trim().replace(/^["']|["']$/g,'');
+
+      // Use data-* on body to override
+      const dataTitle = body.getAttribute('data-title') || defaultTitle || titleEl.textContent;
+      const dataSub = body.getAttribute('data-subtext') || defaultSubtitle || subtitleEl.textContent;
+
+      // Set content (this allows editing via data-* attributes)
+      titleEl.textContent = dataTitle;
+      subtitleEl.textContent = dataSub;
+
+      // Add class to show subtitle after small delay for cinematic effect
+      setTimeout(()=> document.getElementById('center').classList.add('show-sub'), 350);
+
+      // Petal generation
+      function makePetals() {
+        // Count from CSS variable --petal-count
+        const rootStyles = getComputedStyle(document.documentElement);
+        const petalCount = parseInt(rootStyles.getPropertyValue('--petal-count')) || 8;
+        const baseSize = rootStyles.getPropertyValue('--petal-size') || '110px';
+        const duration = rootStyles.getPropertyValue('--animation-duration') || '6.5s';
+
+        // remove existing petals (if re-running)
+        const existing = flower.querySelectorAll('.petal');
+        existing.forEach(n => n.remove());
+
+        for(let i=0;i<petalCount;i++){
+          const p = document.createElement('div');
+          p.className = 'petal';
+          // Distribute rotation around circle using CSS variable
+          const rot = (360 / petalCount) * i;
+          p.style.setProperty('--initial-rot', rot + 'deg');
+          // Stagger animation slightly per petal
+          const delay = (i * (parseFloat(duration) / petalCount)) * 0.18;
+          p.style.animationDelay = delay + 's';
+          // Subtle size variation
+          const scale = 0.92 + (Math.sin(i) * 0.04);
+          p.style.transform = `translate(-50%,-8%) scale(${scale}) rotate(${rot}deg)`;
+          // Add subtle gradient shift per petal using inline background (keeps it lightweight)
+          // We mix three stops to get depth
+          p.style.background = `linear-gradient(180deg, var(--petal-grad-1), var(--petal-grad-2))`;
+          flower.insertBefore(p, flower.querySelector('.core'));
+        }
+      }
+
+      // Initial petal render
+      makePetals();
+
+      /* =========================
+         Animation toggle
+         ========================= */
+      let animationPaused = false;
+      function updateAnimUI(){
+        animToggle.setAttribute('aria-pressed', String(animationPaused));
+        if(animationPaused){
+          document.documentElement.classList.add('paused');
+          // show play icon
+          animIcon.className = 'icon play';
+        } else {
+          document.documentElement.classList.remove('paused');
+          animIcon.className = 'icon pause';
+        }
+      }
+      animToggle.addEventListener('click', () => {
+        animationPaused = !animationPaused;
+        updateAnimUI();
+      });
+      // initialize icon to pause icon (playing by default)
+      animIcon.className = 'icon pause';
+
+      /* =========================
+         Music toggle (local placeholder)
+         - Does not auto-play on load. plays only after user interaction.
+         ========================= */
+      let musicOn = false;
+      musicToggle.addEventListener('click', async () => {
+        musicOn = !musicOn;
+        musicToggle.setAttribute('aria-pressed', String(musicOn));
+        if(musicOn){
+          try{
+            // Try to play (requires user gesture in some browsers — that's why we start after click)
+            await audio.play();
+          }catch(e){
+            console.warn('Audio play prevented:', e);
+          }
+        } else {
+          audio.pause();
+          audio.currentTime = 0;
+        }
+      });
+
+      /* =========================
+         Click surprise: confetti + quote + optional music play
+         - Only on first click will the surprise fire.
+         ========================= */
+      let surprised = false;
+      function showSurprise(){
+        if(surprised) return;
+        surprised = true;
+        // Show quote
+        surpriseEl.classList.add('show');
+        surpriseEl.setAttribute('aria-hidden','false');
+
+        // Attempt to play audio if available (user likely clicked so chrome permits)
+        if(audio && !audio.paused){
+          // already playing
+        } else {
+          // If user hasn't toggled music but clicked the stage, try to play once (user gesture)
+          audio.play().catch(()=>{/* ignore if blocked */});
+        }
+
+        // confetti effect
+        fireConfetti();
+      }
+
+      // Listen for a user click/tap on stage to trigger surprise
+      stage.addEventListener('pointerdown', (e) => {
+        // Avoid triggering when pressing UI buttons
+        if(e.target.closest('.controls')) return;
+        showSurprise();
+      }, { once: false });
+
+      /* =========================
+         Confetti: lightweight canvas particle system
+         - No external libraries
+         - Designed to be gentle & CPU-friendly
+         ========================= */
+      function fireConfetti(){
+        const ctx = confettiCanvas.getContext('2d');
+        let w = confettiCanvas.width = innerWidth;
+        let h = confettiCanvas.height = innerHeight;
+        const pieces = [];
+        const count = Math.round(Math.min(90, 18 + (w/60))); // adapt to screen size
+
+        // Colors based on petal gradient & gold
+        const palette = [
+          '#ff9fc9', '#b36bff', '#ffd27a', '#ffb3c9', '#ff8aa5'
+        ];
+
+        for(let i=0;i<count;i++){
+          pieces.push({
+            x: Math.random()*w,
+            y: Math.random()*h*0.5,
+            vx: (Math.random()-0.5) * 2.3,
+            vy: Math.random()*1.6 + 1.6,
+            rotation: Math.random()*360,
+            size: Math.random()*8 + 4,
+            color: palette[Math.floor(Math.random()*palette.length)],
+            spin: (Math.random()-0.5) * 0.12
+          });
+        }
+
+        let t0 = performance.now();
+        let lifetime = 4200; // ms
+        let animFrame;
+
+        function draw(now){
+          const dt = now - t0;
+          t0 = now;
+          ctx.clearRect(0,0,w,h);
+          for(let p of pieces){
+            p.x += p.vx * (dt/16);
+            p.y += p.vy * (dt/16);
+            p.vy += 0.035 * (dt/16); // gravity
+            p.rotation += p.spin * (dt/16);
+            ctx.save();
+            ctx.translate(p.x,p.y);
+            ctx.rotate(p.rotation);
+            // draw rectangle like confetti
+            ctx.fillStyle = p.color;
+            ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size*0.6);
+            ctx.restore();
+          }
+          // fade out toward end
+          const elapsed = performance.now() - (t0 - dt);
+          // stop after lifetime
+          if(performance.now() - (t0 - dt) < lifetime){
+            animFrame = requestAnimationFrame(draw);
+          } else {
+            // smooth fade: clear canvas after a small timeout
+            setTimeout(()=> ctx.clearRect(0,0,w,h), 300);
+            cancelAnimationFrame(animFrame);
+          }
+        }
+        // Resize handler
+        function onResize(){
+          w = confettiCanvas.width = innerWidth;
+          h = confettiCanvas.height = innerHeight;
+        }
+        window.addEventListener('resize', onResize);
+        // Run for limited time
+        requestAnimationFrame(draw);
+        setTimeout(()=> window.removeEventListener('resize', onResize), lifetime + 500);
+      }
+
+      /* =========================
+         Accessibility & reduced-motion — already handled in CSS using media query.
+         We still ensure focus styles and keyboard control for toggles.
+         ========================= */
+      animToggle.addEventListener('keydown', (e) => { if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); animToggle.click(); }});
+      musicToggle.addEventListener('keydown', (e) => { if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); musicToggle.click(); }});
+
+      /* =========================
+         Fallback & helpful console messages
+         ========================= */
+      console.info('Single-file blooming flower loaded. To change displayed text, edit :root CSS variables --title-text / --subtitle-text OR change data-title / data-subtext on the <body> element.');
+
+      /* =========================
+         End of IIFE
+         ========================= */
+    })();
+  </script>
+
+  <!-- ============================
+       Deployment instructions (kept as an HTML comment per spec)
+       ============================ -->
+  <!-- Cara deploy:
+       1. Buat repository public di GitHub.
+       2. Commit & push file index.html (dan optional: romantic.mp3 jika ingin suara).
+       3. Settings > Pages > pilih branch main (atau main branch) dan folder / (root).
+       4. Setelah beberapa menit buka: https://username.github.io/nama-repo
+  -->
+
+  <!-- NOTES:
+       - Place a local audio file next to index.html named "romantic.mp3" (or edit the <audio src>) for the sound surprise.
+       - To change visible text without JS edit: modify CSS variables at top (--title-text / --subtitle-text) OR change data-title / data-subtext on <body>.
+       - Respects user prefers-reduced-motion: animations are turned off for such users.
+  -->
+</body>
+</html>
